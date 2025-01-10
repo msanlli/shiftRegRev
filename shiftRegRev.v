@@ -13,7 +13,7 @@ module shiftRegRev #(
     // Dirección del desplazamiento: 1 => derecha, 0 => izquierda
     reg dir;
 
-    always @(posedge clk or negedge rstna) begin
+    always @(clk==1'b1 or negedge rstna) begin
         if (!rstna) begin
             // --- ASYNC RESET ---
             Q             <= {1'b1, {N-1{1'b0}}}; // 1000...0
