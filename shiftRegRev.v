@@ -13,7 +13,7 @@ module shiftRegRev #(
     // Dirección del desplazamiento: 1 => derecha, 0 => izquierda
     reg dir;
 
-    always @(clk==1'b1 or negedge rstna) begin
+    always @(posedge clk  or negedge rstna) begin
         if (!rstna) begin
             // --- ASYNC RESET ---
             Q             <= {1'b1, {N-1{1'b0}}}; // 1000...0
@@ -28,13 +28,13 @@ module shiftRegRev #(
             if (ena) begin
                 // 1) Primero: Checamos si estamos en un extremo para “rebotar”
                 //    Si Q[0] == 1 y dir == 1 => llegamos a LSB mientras íbamos a la derecha.
-                if (Q[0] == 1'b1 && dir == 1'b1) begin
+                if (Q[1] == 1'b1 && dir == 1'b1) begin
                     dir <= 1'b0;           // Rebota a la izquierda
                     TC  <= 1'b1;           // Activa pulso de TC
                     period_count <= period_count + 1'b1;  // Incrementa contador de periodos
                 end
                 //    Si Q[N-1] == 1 y dir == 0 => llegamos a MSB mientras íbamos a la izquierda.
-                else if (Q[N-1] == 1'b1 && dir == 1'b0) begin
+                else if (Q[N-2] == 1'b1 && dir == 1'b0) begin
                     dir <= 1'b1;           // Rebota a la derecha
                 end
 
