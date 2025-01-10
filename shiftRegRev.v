@@ -13,13 +13,8 @@ module shiftRegRev #(
     // Dirección del desplazamiento: 1 => derecha, 0 => izquierda
     reg dir;
 
-    always @(ena) begin
-        if (!ena) begin
+    always @(negedge clk) begin
         TC <= 1'b0;
-        end
-        else if (Q[0]==1'b1) begin
-            TC <= 1'b1;
-        end
     end
 
     always @(posedge clk  or negedge rstna) begin
