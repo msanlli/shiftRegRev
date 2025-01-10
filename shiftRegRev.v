@@ -13,12 +13,11 @@ module shiftRegRev #(
     // Dirección del desplazamiento: 1 => derecha, 0 => izquierda
     reg dir;
 
-    always @(!ena) begin
-        TC <= 0;
-    end
-
     always @(ena) begin
-        if (Q[0]==1'b1) begin
+        if (!ena) begin
+        TC <= 1'b0;
+        end
+        else if (Q[0]==1'b1) begin
             TC <= 1'b1;
         end
     end
@@ -37,6 +36,7 @@ module shiftRegRev #(
                 //    Si Q[0] == 1 y dir == 1 => llegamos a LSB mientras íbamos a la derecha.
                 if (Q[1] == 1'b1 && dir == 1'b1) begin
                     dir <= 1'b0;           // Rebota a la izquierda
+                    TC <= 1'b1;
                     period_count <= period_count + 1'b1;  // Incrementa contador de periodos
                 end
                 //    Si Q[N-1] == 1 y dir == 0 => llegamos a MSB mientras íbamos a la izquierda.
