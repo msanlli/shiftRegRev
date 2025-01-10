@@ -1,60 +1,60 @@
 module shiftRegRev #(
-    parameter N = 8
+    parameter N = 8,                // número de bits del registro
+    parameter COUNTER_WIDTH = 8     // ancho del contador de periodos
 )(
     input  wire clk,
-    input  wire rstna,   // reset asíncrono activo en bajo
-    input  wire ena,     // habilita desplazamiento
-    output reg  [N-1:0] Q,
-    output reg  TC       // pulso de 1 ciclo cuando Q llega a LSB
+    input  wire rstna,    // Reset asíncrono activo en bajo
+    input  wire ena,      // Habilita desplazamiento
+    output reg  [N-1:0]   Q,
+    output reg            TC,       // Pulso cuando el '1' llega al LSB
+    output reg  [COUNTER_WIDTH-1:0] period_count // Contador de rebotes
 );
 
-    // Dirección de desplazamiento: 1 => derecha, 0 => izquierda
+    // Dirección del desplazamiento: 1 => derecha, 0 => izquierda
     reg dir;
+
+    // Bloque principal: controla registro Q, dirección y TC
     always @(posedge clk or negedge rstna) begin
         if (!rstna) begin
             // Reset asíncrono
-            // Registro inicializado a 1000...0 (bit MSB=1)
-            Q   <= {1'b1, {N-1{1'b0}}};
-            dir <= 1'b1;     // Suponemos que arrancamos moviéndonos a la derecha
-            TC  <= 1'b0;
-        end else begin
+            Q             <= {1'b1, {N-1{1'b0}}}; // 1000...0
+            dir           <= 1'b1;               // empezar moviendo a la derecha
+            TC            <= 1'b0;
+            period_count  <= {COUNTER_WIDTH{1'b0}};
+        end
+        else begin
             // En cada flanco de subida del reloj
-            // primero limpiamos TC (para que sea pulso)
+            // primero desactivamos TC (para que sea pulso de 1 ciclo)
             TC <= 1'b0;
+
             if (ena) begin
-                // Revisamos si estamos en alguno de los extremos
-                // para cambiar la dirección
+                // Verificamos si estamos en MSB o LSB para cambiar la dirección
                 if (Q[N-1] == 1'b1 && dir == 1'b0) begin
-                    // Si al movernos a la izquierda llegamos al MSB
-                    // cambiamos dir a derecha
+                    // Si estamos en el MSB y vamos a la izquierda, rebota y va a la derecha
                     dir <= 1'b1;
-                end else if (Q[0] == 1'b1 && dir == 1'b1) begin
-                    // Si al movernos a la derecha llegamos al LSB
-                    // cambiamos dir a izquierda
-                    dir <= 1'b0;
-                    // Señal TC se activa aquí
-                    TC  <= 1'b1;
                 end
-                // Ahora desplazamos
+                else if (Q[0] == 1'b1 && dir == 1'b1) begin
+                    // Si llegamos al LSB y estamos yendo a la derecha, rebota a la izquierda
+                    dir <= 1'b0;
+
+                    // Activamos TC en este ciclo
+                    TC <= 1'b1;
+
+                    // Cada vez que TC se active, incrementamos el contador de periodos
+                    period_count <= period_count + 1'b1;
+                end
+
+                // Desplazamiento según dir
                 if (dir) begin
-                    // Desplazamiento a la derecha
+                    // A la derecha
                     Q <= Q >> 1;
-                end else begin
-                    // Desplazamiento a la izquierda
+                end
+                else begin
+                    // A la izquierda
                     Q <= Q << 1;
                 end
             end
-            // Si ena=0, no hacemos nada
-        end
-    end
-    reg [15:0] contadorPeriodos; // ancho a convenir
-    always @(posedge clk or negedge rstna) begin
-        if (!rstna) begin
-            contadorPeriodos <= 16'd0;
-        end else begin
-            if (TC) begin
-                contadorPeriodos <= contadorPeriodos + 1;
-            end
+            // Si ena=0, no hacemos nada, se queda quieto
         end
     end
 
