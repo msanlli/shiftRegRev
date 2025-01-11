@@ -21,13 +21,13 @@ module shiftRegRev (
         else if (ena == 1'b1) begin
                 // 1) Primero: Checamos si estamos en un extremo para “rebotar”
                 //    Si Q[0] == 1 y dir == 1 => llegamos a LSB mientras íbamos a la derecha.
-                if (Q[1] == 1'b1 && dir == 1'b1) begin
+                if (Q[0] == 1'b1 && dir == 1'b1 && TC == 1'b0) begin
                         dir <= 1'b0;           // Rebota a la izquierda
                         TC <= 1'b1;
                         period_count <= period_count + 1'b1;  // Incrementa contador de periodos
                 end
                 //    Si Q[N-1] == 1 y dir == 0 => llegamos a MSB mientras íbamos a la izquierda.
-                else if (Q[N-2] == 1'b1 && dir == 1'b0) begin
+                else if (Q[7] == 1'b1 && dir == 1'b0) begin
                         dir <= 1'b1;           // Rebota a la derecha
                 end
 
