@@ -4,7 +4,7 @@ module shiftRegRev (
     input  wire ena,      // Habilita desplazamiento
     output reg  [8-1:0] Q,
     output reg          TC,          // Pulso cuando el '1' llega al LSB
-    output reg          period_count
+    output reg  [1:0]   period_count
 );
 
     // Dirección del desplazamiento: 1 => derecha, 0 => izquierda
@@ -13,10 +13,10 @@ module shiftRegRev (
     always @(posedge clk  or negedge rstna or ena) begin
         if (!rstna) begin
             // --- ASYNC RESET ---
-            Q             <= {1'b1, {N-1{1'b0}}}; // 1000...0
+            Q             <= {1'b1, {7{1'b0}}}; // 1000...0
             dir           <= 1'b1;               // Empezar moviendo a la derecha
             TC            <= 1'b0;
-            period_count  <= 1'b0;
+            period_count  <= {2{1'b0}};
         end
         else if (ena == 1'b1) begin
                 // 1) Primero: Checamos si estamos en un extremo para “rebotar”
